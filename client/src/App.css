@@ -1,15 +1,20 @@
 .app {
-  max-width: 800px;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 48px 20px;
+
 }
 
 h1 {
+  font-size: 38px;
   margin-bottom: 4px;
 }
 
 .subtitle {
   color: var(--text, #666);
+  margin-top: 15px;
   margin-bottom: 32px;
 }
 
@@ -22,7 +27,22 @@ h1 {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
+  background: #ffffff;
+  border: 1px solid #e6e6ea;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hint {
+  font-size: 14px;
+  color: #6b7280;
 }
 
 label {
@@ -32,27 +52,54 @@ label {
 textarea {
   font-family: inherit;
   font-size: 15px;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  line-height: 1.6;
+  padding: 16px;
+  min-height: 140px;
+  background: #f1eefb;
+  border: 1px solid #e2dcf5;
+  border-radius: 12px;
+  color: #1f1d2b;
   resize: vertical;
 }
 
-button {
-  align-self: flex-start;
-  padding: 12px 24px;
+textarea:focus {
+  outline: none;
+  border-color: #7c5cff;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-primary {
+  padding: 14px 28px;
   font-size: 16px;
   font-weight: 600;
   border: none;
-  border-radius: 6px;
-  background: #6d28d9;
-  color: white;
+  border-radius: 12px;
+  background: #6a4cf5;
+  color: #ffffff;
   cursor: pointer;
 }
 
-button:disabled {
-  opacity: 0.6;
+.btn-primary:hover {
+  background: #5a3ce0;
+}
+
+.btn-primary:disabled {
+  opacity: 0,6;
   cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 14px 24px;
+  font-size: 16px;
+  border: 1px solid #e6e6ea;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1f1d2b;
+  cursor: pointer;
 }
 
 .error {
@@ -61,15 +108,169 @@ button:disabled {
 }
 
 .result {
-  margin-top: 40px;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fafafa;
+  margin-top: 24px;
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e6e6ea;
+  border-left: 4px solid #6a4cf5;
+  border-radius: 16px;
 }
 
 .result pre {
   white-space: pre-wrap;
   font-family: inherit;
   font-size: 15px;
+  line-height: 1.7;
+  color: #1f1d2b;
+  margin: 16px 0;
+}
+
+.copy-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.layout{
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.main {
+  min-width: 0;
+}
+
+.sidebar {
+  position: sticky;
+  top: 24px;
+}
+
+.match-card {
+  background: #ffffff;
+  border: 1px solid #e6e6ea;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+@media (max-width: 800px) {
+  .layout {
+    grid-template-columns: 1fr;;
+  }
+}
+
+.match-card h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.match-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.score-ring {
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: conic-gradient(#16a34a calc(var(--score) * 1%), #e5e7eb 0);
+  display: grid;
+  place-items: center;
+}
+
+.score-ring span {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #16151d;
+}
+
+.keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.keywords li {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #efeafb;
+  border: 1px solid #ddd6f3;
+  font-size: 14px;
+  color: #1f1d2b;
+}
+
+.feedback {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feedback-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #4b5563;
+}
+
+.feedback-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.feedback-item.good .feedback-icon {
+  color: #16a34a;
+}
+
+.feedback-item.improve .feedback-icon {
+  color: #d97706;
+}
+
+.upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.upload-btn {
+  display: inline-block;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.file-input:focus-visible + .upload-btn {
+  outline: 2px solid #7c5cff;
+  outline-offset: 2px;
 }
