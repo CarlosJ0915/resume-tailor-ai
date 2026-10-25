@@ -6,7 +6,10 @@ function App() {
   return (
     <div className="app">
       <HeaderComponent />
-      <ResumeFormComponent />
+      <main>
+        <ResumeFormComponent />
+      </main>
+      <footer className="footer">AI suggestions can be wrong. Review your resume before sending it.</footer>
     </div>
   );
 }
