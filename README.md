@@ -7,7 +7,11 @@ A full-stack web app that rewrites a resume to better match a specific job descr
 - The job's key skills that the resume matches
 - Short feedback on strengths and what could be improved
 
-<!-- Add a screenshot here: drag an image into this file on GitHub, or save one as docs/screenshot.png and use ![AI Resume Tailor](docs/screenshot.png) -->
+**[Live demo →](https://carlosj0915.github.io/resume-tailor-ai/)** The API runs on Render's free tier, so the first request after a quiet period can take up to a minute while the server wakes up.
+
+![AI Resume Tailor home screen](docs/screenshot.jpg)
+
+![Tailored resume with match rating, keywords and feedback](docs/results.jpg)
 
 ## Tech stack
 
@@ -71,6 +75,9 @@ server/                         Node + Express backend
 | ------ | -------------------- | -------------------------------------- | -------------------------------------------------------- |
 | POST   | `/api/upload-resume` | `multipart/form-data` with a `resume` file (PDF or `.docx`) | `{ resumeText }`                                          |
 | POST   | `/api/tailor`        | JSON `{ resume, jobDescription }`      | `{ tailoredResume, matchScore, keywords, feedback, passes, selectedPass }` |
+| GET    | `/api/health`        | —                                      | `{ ok: true }` (used to wake the server)                 |
+
+Limits: 10 tailor requests per visitor per hour (`TAILOR_LIMIT_PER_HOUR`), 30 uploads per hour, 5 MB files, and 20,000 characters per text field.
 
 ## Running it locally
 
@@ -102,6 +109,11 @@ npm run dev
 
 Open the URL Vite prints (usually http://localhost:5173). Both terminals need to stay running.
 
+## Deploying
+
+- **Server (Render):** in Render, choose **New → Blueprint** and pick this repo. [`render.yaml`](render.yaml) sets up a free Node web service from `server/`. Render asks for `GEMINI_API_KEY`, which is stored there and never committed. `ALLOWED_ORIGINS` limits which sites may call the API.
+- **Client (GitHub Pages):** set `VITE_API_URL` in [`client/.env.production`](client/.env.production) to your Render URL plus `/api`, then run `npm run deploy` from `client/`. That builds the site and publishes it to the `gh-pages` branch.
+
 ## What I learned
 
 - **Designing a small client/server app:** keeping the API key server-side, splitting the React code into components and a service layer, and defining a JSON contract between frontend and backend.
@@ -117,4 +129,4 @@ Open the URL Vite prints (usually http://localhost:5173). Both terminals need to
 - **The score is noisy.** Pass 1 scored 68, 68, and 72 on identical input, so the 85 threshold is fuzzier than it looks and a run can pass or fail partly on chance. Scoring each pass several times and taking the median would help.
 - **The loop doesn't always converge.** It can plateau below the threshold and spend its remaining passes without improving.
 - **Free-tier API availability.** Gemini's free tier sometimes returns `503 Service Unavailable` during high demand. `askModel` retries once, which isn't enough for a sustained outage.
-- **Local only.** The app needs the Express server running, so it isn't deployed as a static site. There's also no rate limiting or upload size limit yet.
+- **Cold starts.** Render's free tier sleeps after about 15 minutes idle. The page pings `/api/health` on load to wake it, but the first tailor request can still be slow.

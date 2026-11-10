@@ -1,4 +1,11 @@
-const BASE_REST_API_URL = "http://localhost:3001/api";
+// Set VITE_API_URL in client/.env.production to point the deployed site at the hosted server.
+const BASE_REST_API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+
+// The free hosting tier sleeps when idle; ping it on page load so it is
+// awake by the time the visitor has pasted their resume.
+export const wakeServer = () => {
+  fetch(`${BASE_REST_API_URL}/health`).catch(() => {});
+};
 
 export const tailorResume = async (resume, jobDescription) => {
   const res = await fetch(`${BASE_REST_API_URL}/tailor`, {
@@ -8,7 +15,8 @@ export const tailorResume = async (resume, jobDescription) => {
   });
 
   if (!res.ok) {
-    throw new Error("Request failed");
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || "Request failed");
   }
 
   const data = await res.json();
@@ -26,7 +34,8 @@ export const uploadResume = async (file) => {
   });
 
   if (!res.ok) {
-    throw new Error ("Upload failed");
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || "Upload failed");
   }
 
   const data = await res.json();

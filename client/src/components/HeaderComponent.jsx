@@ -6,8 +6,8 @@ const HeaderComponent = () => {
   return (
     <header className="header">
       <nav className="nav">
-        <a className="brand" href="/">
-          <img src="/favicon.svg" alt="" width="28" height="28" />
+        <a className="brand" href={import.meta.env.BASE_URL}>
+          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width="28" height="28" />
           <span>Resume Tailor</span>
           <span className="brand-tag">AI</span>
         </a>

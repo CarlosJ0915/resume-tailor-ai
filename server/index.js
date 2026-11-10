@@ -20,7 +20,10 @@
 const multer = require("multer");
 const { PDFParse } = require("pdf-parse");
 const mammoth = require("mammoth");
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 //Google | Gemini API configuration
 require("dotenv").config();
@@ -28,6 +31,7 @@ const { GoogleGenerativeAI } =
 require ("@google/generative-ai");
 const express = require("express");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 const genAI = new
 GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -36,12 +40,50 @@ generationConfig: {responseMimeType: "application/json"}
 });
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+
+// Render sits behind a proxy; without this every visitor shares one IP and
+// the rate limiter would lock everyone out at once.
+app.set("trust proxy", 1);
+
+// Comma-separated list, e.g. "https://carlosj0915.github.io". Unset = allow
+// any origin, which keeps local development working.
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+app.use(cors(allowedOrigins.length ? { origin: allowedOrigins } : undefined));
+app.use(express.json({ limit: "100kb" }));
+
+// Every tailor request costs up to six model calls, so cap how often one
+// visitor can run it on a public demo.
+const tailorLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    limit: Number(process.env.TAILOR_LIMIT_PER_HOUR) || 10,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: { error: "Too many requests. Please try again in an hour." },
+});
+const uploadLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    limit: 30,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: { error: "Too many uploads. Please try again later." },
+});
+
+const MAX_INPUT_CHARS = 20000;
+
+// Lets the frontend wake the free-tier server while the visitor is still typing.
+app.get("/api/health", (req, res) => {
+    res.json({ ok: true });
+});
 
 // Upload document
-app.post("/api/upload-resume",upload.single("resume"),
+app.post("/api/upload-resume", uploadLimiter, upload.single("resume"),
   async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+    }
     try{
         let text;
 
@@ -167,10 +209,13 @@ ${jobDescription}`;
     };
 }
 
-app.post("/api/tailor", async (req, res) => {
+app.post("/api/tailor", tailorLimiter, async (req, res) => {
     const { resume, jobDescription } = req.body;
     if (!resume || !jobDescription) {
         return res.status(400).json({ error: "Resume and JobDescription are required" });
+    }
+    if (resume.length > MAX_INPUT_CHARS || jobDescription.length > MAX_INPUT_CHARS) {
+        return res.status(413).json({ error: "Resume or job description is too long" });
     }
 
     try {
@@ -208,6 +253,14 @@ app.post("/api/tailor", async (req, res) => {
         console.error(err);
         res.status(500).json({ error: "Failed to tailor resume" });
     }
+});
+
+// Multer rejects oversized files by throwing; answer with JSON instead of an HTML error page.
+app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+        return res.status(413).json({ error: "File is too large (max 5 MB)" });
+    }
+    next(err);
 });
 
 const PORT = process.env.PORT || 3001;

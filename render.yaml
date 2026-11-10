@@ -1,0 +1,18 @@
+# Render blueprint for the API server. In Render: New > Blueprint, pick this repo.
+# You will be asked for GEMINI_API_KEY; it is stored on Render, never in git.
+services:
+  - type: web
+    name: resume-tailor-ai
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://carlosj0915.github.io
+      - key: TAILOR_LIMIT_PER_HOUR
+        value: "10"

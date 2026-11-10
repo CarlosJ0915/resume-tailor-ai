@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { tailorResume, uploadResume } from "../services/ResumeService";
+import { useEffect, useState } from "react";
+import { tailorResume, uploadResume, wakeServer } from "../services/ResumeService";
 import ResultComponent from "./ResultComponent";
 import MatchRatingComponent from "./MatchRatingComponent";
 import { FileIcon, SparkleIcon, UploadIcon, XIcon } from "./Icons";
@@ -19,6 +19,10 @@ const ResumeFormComponent = () => {
 
   const canSubmit = resume.trim() && jobDescription.trim() && !loading && !uploading;
 
+  useEffect(() => {
+    wakeServer();
+  }, []);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
@@ -29,7 +33,9 @@ const ResumeFormComponent = () => {
       setTailoredResume(result.tailoredResume);
       setMatchData(result);
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError(err.message === "Request failed" || err.message === "Failed to fetch"
+        ? "Something went wrong. The demo server may be waking up, so try again in a moment."
+        : err.message);
     } finally {
       setLoading(false);
     }
